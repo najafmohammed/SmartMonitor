@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "378481767009",
+    "firebase_url": "https://smart-nrg-monitor.firebaseio.com",
+    "project_id": "smart-nrg-monitor",
+    "storage_bucket": "smart-nrg-monitor.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:378481767009:android:fa68f0014a197d696fb020",
+        "android_client_info": {
+          "package_name": "com.novus.smartmonitor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "378481767009-3rj74qjc3ffl9va9igv3bu324o37u6s4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.novus.smartmonitor",
+            "certificate_hash": "0d2e20ed0bca3f0fe4b09ac649aafea9f17f88e0"
+          }
+        },
+        {
+          "client_id": "378481767009-lqtj5v8vm2quskn52eu6rff8o6rhebit.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQY3XuSiLPE5yta_dwMt4ISuj7xLfO-uA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "378481767009-lqtj5v8vm2quskn52eu6rff8o6rhebit.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
