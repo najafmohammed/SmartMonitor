@@ -8,10 +8,15 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -72,10 +77,6 @@ public class settings extends AppCompatActivity implements NavigationView.OnNavi
 
     }
 
-
-
-
-
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -126,14 +127,12 @@ public class settings extends AppCompatActivity implements NavigationView.OnNavi
             startActivity(intent);
 
         } else if (id == R.id.nav_share) {
-            Intent sendIntent = new Intent();
-            sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, "https://www.smartmonitor.com");
-            sendIntent.putExtra(Intent.EXTRA_TITLE, "Check Out Github page");
-            sendIntent.setType("text/plain");
-            Intent shareIntent = Intent.createChooser(sendIntent, null);
-            startActivity(shareIntent);
-
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_TEXT, "https://github.com/najafmohammed/SmartMonitor");
+            intent.putExtra(Intent.EXTRA_TITLE, "Check Out Github page");
+            intent.setType("text/plain");
+            startActivity(intent);
         }
         else if (id == R.id.nav_logout) {
             notifyUser("Singed out");

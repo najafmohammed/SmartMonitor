@@ -29,7 +29,7 @@ import com.jjoe64.graphview.series.DataPointInterface;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
-
+import android.os.Vibrator;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity
     int cost_value=0;
     double unit_rate=3.5;
     Button button,reset,current_usage,power_button,status_button,cost_button;
+    private Vibrator hapticFeedback;
     ImageView image,nav_profile_img;
     TextView power,cost,status,ai_suggestions,nav_user_name;
     private LineGraphSeries <DataPoint> power_measurured =new LineGraphSeries<>(new DataPoint[]{new DataPoint(0,0)});
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         auth = FirebaseAuth.getInstance();
+        hapticFeedback=(Vibrator) this.getSystemService(VIBRATOR_SERVICE);
         image = findViewById(R.id.day_night_image);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -130,6 +132,7 @@ public class MainActivity extends AppCompatActivity
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                hapticFeedback.vibrate(50);
                 Animation refresh = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.refresh_menu);
                 graph.startAnimation(refresh);
                 graph.takeSnapshotAndShare(MainActivity.this, "exampleGraph", "GraphViewSnapshot");
@@ -159,6 +162,7 @@ public class MainActivity extends AppCompatActivity
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View view) {
+                hapticFeedback.vibrate(50);
                 Random random = new Random();
                 int randomFactor = random.nextInt(7-3)+3;
                 power_value += randomFactor;
@@ -236,6 +240,7 @@ public class MainActivity extends AppCompatActivity
         nav_profile_img.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                hapticFeedback.vibrate(50);
                 Intent intent = new Intent(MainActivity.this, profile_settings.class);
                 startActivity(intent);
             }
@@ -249,6 +254,7 @@ public class MainActivity extends AppCompatActivity
         image.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
+                hapticFeedback.vibrate(50);
                 image.setImageResource(R.drawable.home_night);
             }
         });
@@ -257,6 +263,7 @@ public class MainActivity extends AppCompatActivity
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
+                hapticFeedback.vibrate(50);
                 image.setImageResource(R.drawable.home_day);
 
             }
@@ -369,15 +376,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
+        hapticFeedback.vibrate(50);
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if(id == R.id.nav_profile_img){
-            notifyUser("hahaha");
         }
 
         if (id == R.id.nav_home) {
-            notifyUser("hahaha");
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_bills) {

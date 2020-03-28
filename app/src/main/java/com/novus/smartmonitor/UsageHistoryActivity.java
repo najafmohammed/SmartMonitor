@@ -6,6 +6,7 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -19,11 +20,26 @@ import com.google.android.material.snackbar.Snackbar;
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.DataPointInterface;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.OnDataPointTapListener;
+import com.jjoe64.graphview.series.Series;
+
 import android.widget.TimePicker;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
+import android.os.Vibrator;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.util.ArrayList;
 
 public class UsageHistoryActivity extends AppCompatActivity {
+    ArrayList<JSONArray> DayReading = new ArrayList<>();
+    ArrayList[][] dayvalues = new ArrayList[24][31];
     private Button choosedate,choosetime,showGraph;
     private TextView status,selectedDate,selectedTime,selectedFilter;
     private ChipGroup dateParameter;
@@ -31,34 +47,28 @@ public class UsageHistoryActivity extends AppCompatActivity {
     private Calendar c;
     private boolean dateSelectedFlag=false,timeSelectedFlag=false;
     private Context ctx = this;
-    public int[] day1 = {1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,999};
-    public int[] day2 = {6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4, 5, 1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,999};
-    public int[] day3 = {4, 1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,999};
-    public int[] day4 = {3, 2, 3, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,999};
-    public int[] day5 = {5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4, 5, 1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,999};
-    public int[] day6 = {1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4, 5, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,999};
-    public int[] day7 = {2, 2, 3, 1, 2, 3, 4, 5, 3, 4, 5, 3, 4, 5, 3, 1, 6, 2, 1, 2, 3, 4, 5, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 1, 2, 3, 4, 5,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 3, 4, 5, 3, 4, 5, 6, 2, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 2, 1, 3, 4, 5, 5, 2, 3, 4, 5, 2, 1, 2, 3, 4,999};
-
-    private LineGraphSeries <DataPoint> power_measurured =new LineGraphSeries<>(new DataPoint[]{new DataPoint(0,0),new DataPoint(1,2),new DataPoint(2,4)});
+    private Vibrator hapticFeedback;
+    private int FlagfilterID=1;
+    private LineGraphSeries <DataPoint> power_measured =new LineGraphSeries<>(new DataPoint[]{new DataPoint(0,0)});
     private DataPoint[] generateData(){
         DataPoint[] values =new DataPoint[]{new DataPoint(0,0)};
         return values;
     }
-    private double graphlastXValue =1d;
     private void reset(){
         final GraphView graph = findViewById(R.id.history_graph);
-        power_measurured.resetData(generateData());
-        graph.addSeries(power_measurured);
+        power_measured.resetData(generateData());
+        graph.addSeries(power_measured);
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_usage_history);
+        hapticFeedback=(Vibrator) this.getSystemService(VIBRATOR_SERVICE);
         choosedate=findViewById(R.id.choosedate);
         status=findViewById(R.id.status_usgae);
         dateParameter=findViewById(R.id.Date_parameter);
         choosetime=findViewById(R.id.choosetime);
-        TimePicker timePicker = findViewById(R.id.timeSelect);
         choosetime.setBackgroundColor(Color.GRAY);
         showGraph=findViewById(R.id.showGraph);
         showGraph.setBackgroundColor(Color.GRAY);
@@ -77,6 +87,7 @@ public class UsageHistoryActivity extends AppCompatActivity {
         showGraph.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                hapticFeedback.vibrate(50);
                 if(!dateSelectedFlag){
                     Snackbar snackbar = Snackbar
                             .make(view ,"Date has not been selected", Snackbar.LENGTH_LONG)
@@ -104,17 +115,8 @@ public class UsageHistoryActivity extends AppCompatActivity {
                     snackbar.show();
                 }
                 else {
-                    final Snackbar snackbar = Snackbar
-                            .make(view ,"Graph being processed please wait", Snackbar.LENGTH_LONG)
-                            .setBackgroundTint(Color.BLACK)
-                            .setTextColor(Color.WHITE)
-                            .setAction("Dismiss", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-
-                                }
-                            });
-                    snackbar.show();
+                    snackbarMessage("Loading graph Data",view);
+                    ShowGenData();
                 }
             }
         });
@@ -122,6 +124,7 @@ public class UsageHistoryActivity extends AppCompatActivity {
         choosetime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                hapticFeedback.vibrate(50);
                 if(dateSelectedFlag) {
                     show_Timepicker();
                 }
@@ -143,6 +146,7 @@ public class UsageHistoryActivity extends AppCompatActivity {
         choosedate.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
+                hapticFeedback.vibrate(50);
                 show_Datepicker();
 
             }
@@ -150,6 +154,7 @@ public class UsageHistoryActivity extends AppCompatActivity {
         dateParameter.setOnCheckedChangeListener(new ChipGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(ChipGroup group, int checkedId) {
+                hapticFeedback.vibrate(50);
                 Chip chip=dateParameter.findViewById(checkedId);
                 if(chip!=null){
                     String chipname= (String) chip.getText();
@@ -157,27 +162,27 @@ public class UsageHistoryActivity extends AppCompatActivity {
                     switch (chipname){
                         case "Minute":{
                         selectedFilter.setText("Minute");
-                            minuteFilter();
+                            FlagfilterID=1;
                         break;}
                         case "Hour":{
                             selectedFilter.setText("Hour");
-                            hourFilter();
+                            FlagfilterID=2;
                             break;}
                         case "Day":{
                             selectedFilter.setText("Day");
-                            dayFilter();
+                            FlagfilterID=3;
                             break;}
                         case "Week":{
                             selectedFilter.setText("Week");
-                            weekFilter();
+                            FlagfilterID=4;
                             break;}
                         case "Month":{
                             selectedFilter.setText("Month");
-                            monthFilter();
+                            FlagfilterID=5;
                             break;}
                         case "Year":{
                             selectedFilter.setText("Year");
-                            yearFilter();
+                            FlagfilterID=6;
                             break;}
                     }
                 }
@@ -256,6 +261,7 @@ public class UsageHistoryActivity extends AppCompatActivity {
                     @Override
                     public void onDateSet(DatePicker view, int year,
                                           int monthOfYear, int dayOfMonth) {
+                        hapticFeedback.vibrate(50);
                         mMonth = monthOfYear + 1;
                         mYear=year;
                         mDay=dayOfMonth;
@@ -277,6 +283,7 @@ public class UsageHistoryActivity extends AppCompatActivity {
                                           int pMinute) {
 
                         mHour = pHour;
+                        hapticFeedback.vibrate(50);
                         mMinute = pMinute;
                         selectedTime.setText(mHour+":"+mMinute);
                         showGraph.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
@@ -286,67 +293,108 @@ public class UsageHistoryActivity extends AppCompatActivity {
 
         timePickerDialog.show();
     }
-
-    private void minuteFilter() {
-    }
     private void hourFilter() {
+        reset();
+        try {
+            JSONObject obj = new JSONObject(loadJSONFromAsset());
+            JSONArray values = obj.getJSONArray("values");
+            JSONArray day = null;
+            for (int i = 0; i < values.length(); i++) {
+                JSONObject dayValue = values.getJSONObject(i);
+                day = dayValue.getJSONArray("day");
+                if (day != null) {
+                }
+                DayReading.add(day);
+                Log.d("sds", String.valueOf(day));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JSONArray finalValue=DayReading.get(mDay-1);
+        power_measured.setDrawDataPoints(true);
+        double graphlastXValue = 1;
+        int value=0;
+        for(int lim=0;lim<finalValue.length();lim++){
+            try {
+                value= (int) finalValue.get(lim);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            power_measured.appendData(new DataPoint(graphlastXValue,value),false,1440);
+            graphlastXValue = graphlastXValue+1d;
+        }
+        power_measured.setOnDataPointTapListener(new OnDataPointTapListener() {
+            @Override
+            public void onTap(Series series, DataPointInterface dataPoint) {
+                Toast.makeText(UsageHistoryActivity.this, "Series1: On Data Point clicked: "+dataPoint, Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
-    private void dayFilter() {
-
-    }
-    private void weekFilter() {
-
-    }
-    private void monthFilter() {
-
-    }
-    private void yearFilter() {
-
+    public String loadJSONFromAsset() {
+        String json = null;
+        try {
+            InputStream is = getAssets().open("username4-32020.json");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            json = new String(buffer, "UTF-8");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return json;
     }
 
     private void notifyUser(String message) {
+        hapticFeedback.vibrate(50);
 
         Toast.makeText(UsageHistoryActivity.this, message,
                 Toast.LENGTH_SHORT).show();
     }
-    //custom conversion script
-    public void Plot(int[] temp){
-        final GraphView graph = findViewById(R.id.history_graph);
-        double graphlastXValue=1d;
-        for(int i:temp){
-        power_measurured.appendData(new DataPoint(graphlastXValue,i),false,1440);
-        graphlastXValue = graphlastXValue+1d;
-        }
-        graph.addSeries(power_measurured);
-        graph.setVisibility(View.VISIBLE);
-    }
-    public String DayToValueConverter(int day){
-        int Tday=day;
-       String temp="day"+day;
-        return temp;
-    }
 
-    public int[] GetHourValue(int[] temp){
-        final GraphView graph = findViewById(R.id.history_graph);
-        LineGraphSeries <DataPoint> power_measurured =new LineGraphSeries<>(new DataPoint[]{new DataPoint(0,0)});
-        double graphlastXValue=0;
-        int hourValue[];
-        int i,j=0,lim=60;
-        hourValue= new int[60];
-        for (i=1;i<25;i++){
-            while(j<lim){
-                hourValue[i]+=temp[j];
-                j++;
+    private void snackbarMessage(String message,View view){
+        final Snackbar snackbar = Snackbar
+                .make(view ,message, Snackbar.LENGTH_LONG)
+                .setBackgroundTint(Color.BLACK)
+                .setTextColor(Color.WHITE)
+                .setAction("Dismiss", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                    }
+                });
+        snackbar.show();
+    }
+    private void ShowGenData(){
+        switch (FlagfilterID){
+            case 1:{
+                notifyUser("minute");
+                break;
             }
-            power_measurured.appendData(new DataPoint(graphlastXValue,hourValue[i]),false,50);
-            graphlastXValue = graphlastXValue+1d;
-            j=lim;
-            lim+=60;
+            case 2:{
+                notifyUser("hour");
+                hourFilter();
+                break;
+            }
+            case 3:{
+                notifyUser("day");
+                break;
+            }
+            case 4:{
+                notifyUser("week");
+                break;
+            }
+            case 5:{
+                notifyUser("month");
+                break;
+            }
+            case 6:{
+                notifyUser("year");
+                break;
+            }
         }
-        graph.addSeries(power_measurured);
-        return hourValue;
     }
 
-    }
+}
 
