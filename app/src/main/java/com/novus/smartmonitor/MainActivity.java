@@ -15,6 +15,7 @@ import android.graphics.Color;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.RequiresApi;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.view.GravityCompat;
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity
     protected DrawerLayout mDrawer;
 
     private FirebaseAuth auth;
-
+    private CardView DataView;
 
     private DataPoint[] generateData(){
         DataPoint[] values =new DataPoint[]{new DataPoint(0,0)};
@@ -82,6 +83,8 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
         power=findViewById(R.id.power);
+
+        DataView=findViewById(R.id.DataCardview);
 
         power_button=findViewById(R.id.power_button);
         cost=findViewById(R.id.cost);
@@ -128,6 +131,23 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+
+        //Guesture support template
+        /*DataView.setOnTouchListener(new OnSwipeTouchListener(MainActivity.this) {
+            public void onSwipeTop() {
+                Toast.makeText(MainActivity.this, "top", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeRight() {
+                Toast.makeText(MainActivity.this, "right", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeLeft() {
+                Toast.makeText(MainActivity.this, "left", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeBottom() {
+                Toast.makeText(MainActivity.this, "bottom", Toast.LENGTH_SHORT).show();
+            }
+
+        });*/
 
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -222,9 +242,6 @@ public class MainActivity extends AppCompatActivity
                 power_measurured.appendData(new DataPoint(graphlastXValue,randomFactor),true,50);
                 graphlastXValue = graphlastXValue+1d;
                 graph.addSeries(power_measurured);
-
-
-                //Toast.makeText(getApplicationContext(),"Retrieving from server",Toast.LENGTH_SHORT).show();
             }
         });
         mDrawer= findViewById(R.id.drawer_layout);
@@ -422,5 +439,7 @@ public class MainActivity extends AppCompatActivity
         Toast.makeText(MainActivity.this, message,
                 Toast.LENGTH_SHORT).show();
     }
+
+
 
 }

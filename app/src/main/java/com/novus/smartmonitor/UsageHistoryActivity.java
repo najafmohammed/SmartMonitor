@@ -1,9 +1,12 @@
 package com.novus.smartmonitor;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.chip.Chip;
@@ -39,6 +43,7 @@ import java.util.ArrayList;
 
 public class UsageHistoryActivity extends AppCompatActivity {
     ArrayList<JSONArray> DayReading = new ArrayList<>();
+    ArrayList<Integer> DayReading2 = new ArrayList<Integer>();
     ArrayList[][] dayvalues = new ArrayList[24][31];
     private Button choosedate,choosetime,showGraph;
     private TextView status,selectedDate,selectedTime,selectedFilter;
@@ -59,6 +64,7 @@ public class UsageHistoryActivity extends AppCompatActivity {
         power_measured.resetData(generateData());
         graph.addSeries(power_measured);
     }
+    private SeekBar seekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,11 +87,30 @@ public class UsageHistoryActivity extends AppCompatActivity {
         selectedDate=findViewById(R.id.selectedDate);
         selectedTime=findViewById(R.id.selectedTime);
         selectedFilter=findViewById(R.id.selectedFilter);
+        seekBar=findViewById(R.id.seekBar);
         startup_aniamtion();
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress,
+                                          boolean fromUser) {
+                status.setText("seekbar progress: "+progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
 
 
         showGraph.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View view) {
                 hapticFeedback.vibrate(50);
                 if(!dateSelectedFlag){
@@ -94,7 +119,6 @@ public class UsageHistoryActivity extends AppCompatActivity {
                             .setBackgroundTint(Color.BLACK)
                             .setTextColor(Color.WHITE)
                             .setAction("Choose Date", new View.OnClickListener() {
-                                @Override
                                 public void onClick(View view) {
                                     show_Datepicker();
                                 }
@@ -107,7 +131,6 @@ public class UsageHistoryActivity extends AppCompatActivity {
                             .setBackgroundTint(Color.BLACK)
                             .setTextColor(Color.WHITE)
                             .setAction("Choose Time", new View.OnClickListener() {
-                                @Override
                                 public void onClick(View view) {
                                     show_Timepicker();
                                 }
@@ -116,13 +139,14 @@ public class UsageHistoryActivity extends AppCompatActivity {
                 }
                 else {
                     snackbarMessage("Loading graph Data",view);
+                    open(view);
+                    seekbarControl();
                     ShowGenData();
                 }
             }
         });
 
         choosetime.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View view) {
                 hapticFeedback.vibrate(50);
                 if(dateSelectedFlag) {
@@ -134,7 +158,6 @@ public class UsageHistoryActivity extends AppCompatActivity {
                             .setBackgroundTint(Color.BLACK)
                             .setTextColor(Color.WHITE)
                             .setAction("Choose Date", new View.OnClickListener() {
-                                @Override
                                 public void onClick(View view) {
                                     show_Datepicker();
                                 }
@@ -144,7 +167,6 @@ public class UsageHistoryActivity extends AppCompatActivity {
             }
         });
         choosedate.setOnClickListener(new View.OnClickListener(){
-            @Override
             public void onClick(View view) {
                 hapticFeedback.vibrate(50);
                 show_Datepicker();
@@ -152,7 +174,6 @@ public class UsageHistoryActivity extends AppCompatActivity {
             }
         });
         dateParameter.setOnCheckedChangeListener(new ChipGroup.OnCheckedChangeListener() {
-            @Override
             public void onCheckedChanged(ChipGroup group, int checkedId) {
                 hapticFeedback.vibrate(50);
                 Chip chip=dateParameter.findViewById(checkedId);
@@ -293,48 +314,12 @@ public class UsageHistoryActivity extends AppCompatActivity {
 
         timePickerDialog.show();
     }
-    private void hourFilter() {
-        reset();
-        try {
-            JSONObject obj = new JSONObject(loadJSONFromAsset());
-            JSONArray values = obj.getJSONArray("values");
-            JSONArray day = null;
-            for (int i = 0; i < values.length(); i++) {
-                JSONObject dayValue = values.getJSONObject(i);
-                day = dayValue.getJSONArray("day");
-                if (day != null) {
-                }
-                DayReading.add(day);
-                Log.d("sds", String.valueOf(day));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        JSONArray finalValue=DayReading.get(mDay-1);
-        power_measured.setDrawDataPoints(true);
-        double graphlastXValue = 1;
-        int value=0;
-        for(int lim=0;lim<finalValue.length();lim++){
-            try {
-                value= (int) finalValue.get(lim);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            power_measured.appendData(new DataPoint(graphlastXValue,value),false,1440);
-            graphlastXValue = graphlastXValue+1d;
-        }
-        power_measured.setOnDataPointTapListener(new OnDataPointTapListener() {
-            @Override
-            public void onTap(Series series, DataPointInterface dataPoint) {
-                Toast.makeText(UsageHistoryActivity.this, "Series1: On Data Point clicked: "+dataPoint, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-    }
     public String loadJSONFromAsset() {
         String json = null;
+        String fileName="username-"+mMonth+mYear+".json";
+
         try {
-            InputStream is = getAssets().open("username4-32020.json");
+            InputStream is = getAssets().open(fileName);
             int size = is.available();
             byte[] buffer = new byte[size];
             is.read(buffer);
@@ -367,9 +352,11 @@ public class UsageHistoryActivity extends AppCompatActivity {
         snackbar.show();
     }
     private void ShowGenData(){
+        reset();
         switch (FlagfilterID){
             case 1:{
                 notifyUser("minute");
+                minuteFilter();
                 break;
             }
             case 2:{
@@ -379,22 +366,178 @@ public class UsageHistoryActivity extends AppCompatActivity {
             }
             case 3:{
                 notifyUser("day");
+                dayFilter();
                 break;
             }
             case 4:{
                 notifyUser("week");
+                weekFilter();
                 break;
             }
             case 5:{
                 notifyUser("month");
+                monthFilter();
                 break;
             }
             case 6:{
                 notifyUser("year");
+                yearFilter();
                 break;
             }
         }
     }
+
+    private void yearFilter() {
+    }
+
+    private void monthFilter() {
+    }
+
+    private void weekFilter() {
+    }
+
+    private void dayFilter() {
+        JSONArray values = null;
+        try {
+            JSONObject obj = new JSONObject(loadJSONFromAsset());
+            values = obj.getJSONArray("values");
+            int day = 0;
+            for (int i = 0; i < values.length(); i++) {
+                JSONObject dayValue = values.getJSONObject(i);
+                day = dayValue.getInt("dayTotal");
+                DayReading2.add(day);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Log.d("ssds", String.valueOf(DayReading2.size()));
+
+    }
+
+
+    private void minuteFilter() {
+        try {
+            JSONObject obj = new JSONObject(loadJSONFromAsset());
+            JSONArray values = obj.getJSONArray("values");
+            JSONArray day = null;
+            for (int i = 0; i < values.length(); i++) {
+                JSONObject dayValue = values.getJSONObject(i);
+                day = dayValue.getJSONArray("day");
+                DayReading.add(day);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JSONArray finalValue=DayReading.get(mDay-1);
+        power_measured.setDrawDataPoints(true);
+        double graphlastXValue = 1;
+        int value=0;
+        int sLim=0;
+        if(mHour!=0){sLim=mHour*60;}
+        int flim=sLim+60;
+        for(sLim=sLim;sLim<flim;sLim++){
+            try {
+                value= (int) finalValue.get(sLim);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            power_measured.appendData(new DataPoint(graphlastXValue,value),false,1440);
+            graphlastXValue = graphlastXValue+1d;
+        }
+        power_measured.appendData(new DataPoint(graphlastXValue, 0), false, 1440);
+        power_measured.setOnDataPointTapListener(new OnDataPointTapListener() {
+            @Override
+            public void onTap(Series series, DataPointInterface dataPoint) {
+                Toast.makeText(UsageHistoryActivity.this, "Series1: On Data Point clicked: "+dataPoint, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+    private void hourFilter() {
+        try {
+            JSONObject obj = new JSONObject(loadJSONFromAsset());
+            JSONArray values = obj.getJSONArray("values");
+            JSONArray day = null;
+            for (int i = 0; i < values.length(); i++) {
+                JSONObject dayValue = values.getJSONObject(i);
+                day = dayValue.getJSONArray("day");
+                DayReading.add(day);
+                Log.d("sds", String.valueOf(day));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JSONArray finalValue=DayReading.get(mDay-1);
+        power_measured.setDrawDataPoints(true);
+        double graphlastXValue = 1;
+        int value=0;
+        int sLim=0;
+        int fLim=60;
+        boolean exitFlag=false;
+        while (exitFlag==false) {
+            for (value = 0; sLim < fLim; sLim++) {
+                try {
+                    value+= (int) finalValue.get(sLim);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            power_measured.appendData(new DataPoint(graphlastXValue, value), false, 1440);
+            graphlastXValue = graphlastXValue + 1d;
+            sLim=fLim;
+            fLim+=60;
+            if(fLim>1440)
+            {exitFlag=true;}
+        }
+        power_measured.appendData(new DataPoint(graphlastXValue, 0), false, 1440);
+        power_measured.setOnDataPointTapListener(new OnDataPointTapListener() {
+            @Override
+            public void onTap(Series series, DataPointInterface dataPoint) {
+                Toast.makeText(UsageHistoryActivity.this, "Series1: On Data Point clicked: "+dataPoint, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+    //dialog
+    public void open(View view){
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setMessage("Show graph with current values");
+                alertDialogBuilder.setPositiveButton("yes",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface arg0, int arg1) {
+                                Toast.makeText(UsageHistoryActivity.this,"ok",Toast.LENGTH_LONG).show();
+                            }
+                        });
+
+        alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                notifyUser("Choose date and time");
+            }
+        });
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+    public void seekbarControl(){
+        seekBar = findViewById(R.id.seekBar);
+        int days;
+        switch (FlagfilterID){
+            case 1:{seekBar.setMax(60);break;}
+            case 2:{seekBar.setMax(24);break;}
+            case 3:{
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(mYear, mMonth, mDay);
+                days = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+                seekBar.setMax(days-1);
+            break;}
+            case 4:{seekBar.setMax(4);break;}
+            case 5:{seekBar.setMax(12);break;}
+            case 6:{seekBar.setMax(5);break;}
+        }
+
+
+    }
+
 
 }
 
